@@ -97,7 +97,7 @@ client.on('interactionCreate', async (interaction) => {
         await interaction.deferReply({ ephemeral: true });
         let desc = 'Thả cảm xúc vào các icon bên dưới để nhận hoặc hủy role game tương ứng:\n\n';
         roleConfig1.forEach(i => desc += `${i.text}\n`);
-        const embed = new EmbedBuilder().setColor('#FF4500').setTitle('🎮 CHỌN ROLE THÔNG BÁO GAME').setDescription(desc);
+        const embed = new EmbedBuilder().setColor('#FF4500').setTitle('🎮 Chọn Role Game Mà Bạn Muốn ').setDescription(desc);
         const sentMsg = await interaction.channel.send({ embeds: [embed] });
         for (const i of roleConfig1) {
             await sentMsg.react(`${i.emoji}:${i.emojiId}`).catch(() => {});
@@ -109,7 +109,7 @@ client.on('interactionCreate', async (interaction) => {
         await interaction.deferReply({ ephemeral: true });
         let desc = 'Thả cảm xúc vào các icon bên dưới để nhận hoặc hủy các vai trò đặc biệt:\n\n';
         roleConfig2.forEach(i => desc += `${i.text}\n`);
-        const embed = new EmbedBuilder().setColor('#00FFFF').setTitle('CHỌN GIỚI TÍNH').setDescription(desc);
+        const embed = new EmbedBuilder().setColor('#00FFFF').setTitle('✨Chọn Giới Tính Của Bạn✨').setDescription(desc);
         const sentMsg = await interaction.channel.send({ embeds: [embed] });
         for (const i of roleConfig2) {
             await sentMsg.react(`${i.emoji}:${i.emojiId}`).catch(() => {});
