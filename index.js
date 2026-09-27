@@ -78,6 +78,7 @@ const roleConfig2 = [
     { emoji: 'lgbtqheart', emojiId: '1553326497849151498', roleId: '1553122149391273984', text: '<a:lgbtqheart:1553326497849151498> <@&1553122149391273984>' }
 ];
 
+// Tạo Slash Command cho phép chọn tối đa 5 role tự động cùng lúc
 const commands = [
     new SlashCommandBuilder()
         .setName('reaction')
@@ -89,12 +90,12 @@ const commands = [
 
     new SlashCommandBuilder()
         .setName('autorole')
-        .setDescription('Cài đặt role tự động gán cho thành viên mới khi vào server')
-        .addRoleOption(option => 
-            option.setName('role')
-                .setDescription('Chọn role muốn auto cấp')
-                .setRequired(true)
-        )
+        .setDescription('Cài đặt danh sách role tự động gán cho thành viên mới')
+        .addRoleOption(option => option.setName('role1').setDescription('Role thứ 1').setRequired(true))
+        .addRoleOption(option => option.setName('role2').setDescription('Role thứ 2').setRequired(false))
+        .addRoleOption(option => option.setName('role3').setDescription('Role thứ 3').setRequired(false))
+        .addRoleOption(option => option.setName('role4').setDescription('Role thứ 4').setRequired(false))
+        .addRoleOption(option => option.setName('role5').setDescription('Role thứ 5').setRequired(false))
 ].map(command => command.toJSON());
 
 client.once('ready', async () => {
@@ -102,23 +103,26 @@ client.once('ready', async () => {
     const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
     try {
         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-        console.log('Đã cập nhật tất cả lệnh thành công (có /autorole)!');
+        console.log('Đã cập nhật lệnh /autorole hỗ trợ nhiều role thành công!');
     } catch (error) {
         console.error(error);
     }
 });
 
+// Tự động gán toàn bộ danh sách role đã lưu khi có thành viên mới vào server
 client.on('guildMemberAdd', async (member) => {
     try {
         const config = getConfig();
-        const autoRoleId = config[member.guild.id];
+        const autoRoleIds = config[member.guild.id]; // Lấy danh sách ID role
         
-        if (!autoRoleId) return;
+        if (!autoRoleIds || !Array.isArray(autoRoleIds) || autoRoleIds.length === 0) return;
 
-        const role = member.guild.roles.cache.get(autoRoleId);
-        if (role) {
-            await member.roles.add(role);
-            console.log(`[AutoRole] Đã cấp role ${role.name} cho thành viên mới: ${member.user.tag}`);
+        for (const roleId of autoRoleIds) {
+            const role = member.guild.roles.cache.get(roleId);
+            if (role && !member.roles.cache.has(role.id)) {
+                await member.roles.add(role);
+                console.log(`[AutoRole] Đã cấp role ${role.name} cho thành viên mới: ${member.user.tag}`);
+            }
         }
     } catch (error) {
         console.error('Lỗi khi cấp auto role:', error);
@@ -137,14 +141,19 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (commandName === 'autorole') {
-        const targetRole = interaction.options.getRole('role');
+        const rolesToAdd = [];
+        for (let i = 1; i <= 5; i++) {
+            const r = interaction.options.getRole(`role${i}`);
+            if (r) rolesToAdd.push(r.id);
+        }
+
         const config = getConfig();
-        
-        config[interaction.guild.id] = targetRole.id;
+        config[interaction.guild.id] = rolesToAdd;
         saveConfig(config);
 
+        const roleNames = rolesToAdd.map(id => `<@&${id}>`).join(', ');
         return interaction.reply({ 
-            content: `✅ Đã thiết lập thành công **${targetRole.name}** làm Auto Role cho server này!`, 
+            content: `✅ Đã thiết lập thành công các role sau làm Auto Role:\n${roleNames}`, 
             ephemeral: true 
         });
     }
