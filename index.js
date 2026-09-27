@@ -11,10 +11,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
-// File lưu cấu hình auto role để không bị mất khi bot restart
 const CONFIG_FILE = path.join(__dirname, 'autorole.json');
 
-// Hàm đọc cấu hình
 function getConfig() {
     try {
         if (fs.existsSync(CONFIG_FILE)) {
@@ -27,7 +25,6 @@ function getConfig() {
     return {};
 }
 
-// Hàm lưu cấu hình
 function saveConfig(data) {
     try {
         fs.writeFileSync(CONFIG_FILE, JSON.stringify(data, null, 2));
@@ -36,7 +33,6 @@ function saveConfig(data) {
     }
 }
 
-// Khởi tạo Express server để giữ bot JangJii sống 24/7 trên Render[span_0](start_span)[span_0](end_span)
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -53,17 +49,14 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.GuildMembers, // Bắt buộc bật để chạy Auto Role
+        GatewayIntentBits.GuildMembers,
     ],
 });
 
-// ================= CẤU HÌNH CHO BOT JANGJII =================
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN || 'ĐIỀN_TOKEN_BOT_2_VÀO_ĐÂY';[span_1](start_span)[span_1](end_span)
-const CLIENT_ID = process.env.CLIENT_ID || 'ĐIỀN_CLIENT_ID_CỦA_BOT_VÀO_ĐÂY';[span_2](start_span)[span_2](end_span)
-const OWNER_ID = process.env.OWNER_ID || 'ĐIỀN_ID_DISCORD_CỦA_BẠN_VÀO_ĐÂY';[span_3](start_span)[span_3](end_span)
-// =============================================================
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN || 'ĐIỀN_TOKEN_BOT_2_VÀO_ĐÂY';
+const CLIENT_ID = process.env.CLIENT_ID || 'ĐIỀN_CLIENT_ID_CỦA_BOT_VÀO_ĐÂY';
+const OWNER_ID = process.env.OWNER_ID || 'ĐIỀN_ID_DISCORD_CỦA_BẠN_VÀO_ĐÂY';
 
-// Nhóm 1: 12 role game ban đầu[span_4](start_span)[span_4](end_span)
 const roleConfig1 = [
     { emoji: '9_ygame_lienquan', emojiId: '1553138867127975986', roleId: '1553120963435044884', text: '<:9_ygame_lienquan:1553138867127975986> <@&1553120963435044884>' },
     { emoji: '9_ygame_tft', emojiId: '1553138907212677140', roleId: '1553121311713140786', text: '<:9_ygame_tft:1553138907212677140> <@&1553121311713140786>' },
@@ -79,14 +72,12 @@ const roleConfig1 = [
     { emoji: 'KannaWhat', emojiId: '1553774065624424568', roleId: '1553773720181416107', text: '<:KannaWhat:1553774065624424568> <@&1553773720181416107>' }
 ];
 
-// Nhóm 2: 3 role đặc biệt[span_5](start_span)[span_5](end_span)
 const roleConfig2 = [
     { emoji: 'abowblue2', emojiId: '1553325325293719562', roleId: '1553122069733187695', text: '<a:abowblue2:1553325325293719562> <@&1553122069733187695>' },
     { emoji: 'abowpink94', emojiId: '1553325355337785435', roleId: '1553122100691079208', text: '<a:abowpink94:1553325355337785435> <@&1553122100691079208>' },
     { emoji: 'lgbtqheart', emojiId: '1553326497849151498', roleId: '1553122149391273984', text: '<a:lgbtqheart:1553326497849151498> <@&1553122149391273984>' }
 ];
 
-// Đăng ký các lệnh Slash Command (bao gồm cả lệnh cấu hình auto role)
 const commands = [
     new SlashCommandBuilder()
         .setName('reaction')
@@ -107,21 +98,20 @@ const commands = [
 ].map(command => command.toJSON());
 
 client.once('ready', async () => {
-    console.log(`[Bot JangJii] Đã đăng nhập: ${client.user.tag}!`);[span_6](start_span)[span_6](end_span)
+    console.log(`[Bot JangJii] Đã đăng nhập: ${client.user.tag}!`);
     const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
     try {
         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-        console.log('Đã cập nhật tất cả lệnh thành công (có /autorole)!');[span_7](start_span)[span_7](end_span)
+        console.log('Đã cập nhật tất cả lệnh thành công (có /autorole)!');
     } catch (error) {
         console.error(error);
     }
 });
 
-// ================= TÍNH NĂNG AUTO ROLE TỰ ĐỘNG =================
 client.on('guildMemberAdd', async (member) => {
     try {
         const config = getConfig();
-        const autoRoleId = config[member.guild.id]; // Lấy ID role cấu hình riêng theo từng server
+        const autoRoleId = config[member.guild.id];
         
         if (!autoRoleId) return;
 
@@ -134,7 +124,6 @@ client.on('guildMemberAdd', async (member) => {
         console.error('Lỗi khi cấp auto role:', error);
     }
 });
-// ==============================================================
 
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
@@ -144,10 +133,9 @@ client.on('interactionCreate', async (interaction) => {
     const isAdmin = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 
     if (!isOwner && !isAdmin) {
-        return interaction.reply({ content: '❌ Bạn không có quyền sử dụng lệnh này!', ephemeral: true });[span_8](start_span)[span_8](end_span)
+        return interaction.reply({ content: '❌ Bạn không có quyền sử dụng lệnh này!', ephemeral: true });
     }
 
-    // Lệnh cài đặt Auto Role
     if (commandName === 'autorole') {
         const targetRole = interaction.options.getRole('role');
         const config = getConfig();
@@ -170,7 +158,7 @@ client.on('interactionCreate', async (interaction) => {
         for (const i of roleConfig1) {
             await sentMsg.react(`${i.emoji}:${i.emojiId}`).catch(() => {});
         }
-        await interaction.editReply({ content: '✅ Đã tạo bảng reaction thành công!' });[span_9](start_span)[span_9](end_span)
+        await interaction.editReply({ content: '✅ Đã tạo bảng reaction thành công!' });
     }
 
     if (commandName === 'reaction2') {
@@ -182,11 +170,10 @@ client.on('interactionCreate', async (interaction) => {
         for (const i of roleConfig2) {
             await sentMsg.react(`${i.emoji}:${i.emojiId}`).catch(() => {});
         }
-        await interaction.editReply({ content: '✅ Đã tạo bảng reaction 2 thành công!' });[span_10](start_span)[span_10](end_span)
+        await interaction.editReply({ content: '✅ Đã tạo bảng reaction 2 thành công!' });
     }
 });
 
-// Xử lý thêm role khi thả reaction[span_11](start_span)[span_11](end_span)
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch().catch(() => {});
@@ -211,7 +198,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
 });
 
-// Xử lý gỡ role khi bỏ reaction[span_12](start_span)[span_12](end_span)
 client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
     if (reaction.partial) await reaction.fetch().catch(() => {});
